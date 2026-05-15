@@ -85,7 +85,7 @@ export const OrderForm = ({ order, onClose }: Props) => {
           initial={{ y: 60, opacity: 0, scale: 0.97 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 60, opacity: 0, scale: 0.97 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+          transition={{ type: 'spring' as const, stiffness: 380, damping: 32 }}
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
             <div>

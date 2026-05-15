@@ -47,7 +47,7 @@ export const CostsPage = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } },
     exit: { opacity: 0, x: -16, transition: { duration: 0.16 } },
   }
 

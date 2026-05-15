@@ -57,7 +57,7 @@ export const AddCostModal = ({ onClose }: Props) => {
         initial={{ scale: 0.94, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.94, opacity: 0, y: 20 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+        transition={{ type: 'spring' as const, stiffness: 380, damping: 32 }}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
           <h2 className="font-semibold text-white">Registrar costo</h2>
@@ -75,7 +75,7 @@ export const AddCostModal = ({ onClose }: Props) => {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
+                transition={{ type: 'spring' as const, stiffness: 300, damping: 20, delay: 0.1 }}
                 className="text-5xl mb-3"
               >
                 ✅

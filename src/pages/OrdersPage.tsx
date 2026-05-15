@@ -88,7 +88,7 @@ export const OrdersPage = () => {
   const searchRef = useRef<HTMLInputElement>(null)
 
   const { orders, updateOrder, deleteOrder } = useOrders()
-  const { addCustomer }  = useCustomers()
+  const { customers }  = useCustomers()
   const { user }         = useAuth()
   const { isAdmin }      = usePermissions()
 
@@ -180,7 +180,7 @@ export const OrdersPage = () => {
 
   const itemVariants = {
     hidden:  { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } },
     exit:    { opacity: 0, x: -20, transition: { duration: 0.18 } },
   }
 

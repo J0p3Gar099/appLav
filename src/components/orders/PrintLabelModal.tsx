@@ -11,8 +11,8 @@
  *
  * Sin dependencias extra — solo React + Framer Motion (ya instalado).
  */
-import { useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect } from 'react'
+import { motion } from 'framer-motion'
 import type { Order } from '@/models/order.model'
 
 // ── helpers ───────────────────────────────────────────────────
@@ -233,7 +233,7 @@ export const PrintLabelModal = ({ order, onClose }: Props) => {
         initial={{ scale: 0.93, opacity: 0, y: 16 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.93, opacity: 0, y: 16 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+        transition={{ type: 'spring' as const, stiffness: 380, damping: 30 }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">

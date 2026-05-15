@@ -14,7 +14,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, ReferenceLine,
+  Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts'
 import { useOrders } from '@/context/OrderContext'
 import { useCosts } from '@/context/CostContext'

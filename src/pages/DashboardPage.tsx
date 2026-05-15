@@ -55,7 +55,7 @@ export const DashboardPage = () => {
     hidden: { opacity: 0, y: 12, scale: 0.97 },
     visible: (i: number) => ({
       opacity: 1, y: 0, scale: 1,
-      transition: { delay: i * 0.06, type: 'spring', stiffness: 380, damping: 28 },
+      transition: { delay: i * 0.06, type: 'spring' as const, stiffness: 380, damping: 28 },
     }),
   }
 
@@ -99,7 +99,7 @@ export const DashboardPage = () => {
                 <motion.span
                   layoutId="tab-indicator"
                   className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full"
-                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  transition={{ type: 'spring' as const, stiffness: 500, damping: 35 }}
                 />
               )}
             </button>

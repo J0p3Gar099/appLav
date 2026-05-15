@@ -76,15 +76,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── 3. Callbacks ──────────────────────────────────────────
   const login = useCallback(async (credentials: LoginCredentials) => {
-    dispatch({ type: 'LOGIN_START' })
-    const result = await authService.login(credentials, findByCredentials)
-    if (!result.success) {
-      dispatch({ type: 'LOGIN_FAILURE', payload: result.error })
-      return
-    }
-    authService.persistSession(result.data.user, result.data.token)
-    dispatch({ type: 'LOGIN_SUCCESS', payload: result.data })
-  }, [findByCredentials])
+  dispatch({ type: 'LOGIN_START' })
+  const result = await authService.login(credentials, findByCredentials)
+  if (!result.success) {
+    dispatch({ type: 'LOGIN_FAILURE', payload: (result as { success: false; error: string }).error })
+    return
+  }
+  authService.persistSession(result.data.user, result.data.token)
+  dispatch({ type: 'LOGIN_SUCCESS', payload: result.data })
+}, [findByCredentials])
 
   const logout = useCallback(async () => {
     await authService.logout()

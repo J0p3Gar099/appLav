@@ -1,0 +1,58 @@
+# ── Dependencias ──────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Build ─────────────────────────────────────────────────────
+dist/
+dist-ssr/
+build/
+
+# ── Variables de entorno  ──────────────────────────────────────
+# .env contiene secrets — NUNCA lo subas
+.env
+.env.local
+.env.*.local
+
+# Estos sí se pueden subir (no tienen secrets, solo defaults públicos)
+# .env.example   ← descomenta si lo usas
+
+# ── Cache y herramientas ───────────────────────────────────────
+.vite/
+.cache/
+*.tsbuildinfo
+
+# ── Editores ───────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json   # este sí es útil compartir
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── Sistema operativo ──────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Logs ──────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Testing ────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Misc ───────────────────────────────────────────────────────
+*.local

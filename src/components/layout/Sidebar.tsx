@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/customers',  label: 'Clientes',    icon: '👥' },
   { to: '/costs',      label: 'Costos',      icon: '💸', adminOnly: true },
   { to: '/employees',  label: 'Empleados',   icon: '👤', adminOnly: true },
+  { to: '/attendance', label: 'Asistencia',  icon: '🕐', adminOnly: true },
 ]
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {

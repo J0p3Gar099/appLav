@@ -2,7 +2,7 @@
  * PAGES / CostsPage.tsx — solo admin.
  * Historial de costos operativos con filtros por categoría y animaciones.
  */
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCosts } from '@/context/CostContext'
 import { useOrders } from '@/context/OrderContext'
@@ -22,11 +22,32 @@ const CATEGORY_INFO: Record<CostCategory, { label: string; color: string; bg: st
   OTRO:          { label: '🗂️ Otro',          color: 'text-slate-400',   bg: 'bg-slate-700/40' },
 }
 
+type TimePeriod = 'ALL' | 'TODAY' | 'WEEK' | 'MONTH'
+
+function startOf(unit: 'day' | 'week' | 'month', d = new Date()): Date {
+  const r = new Date(d)
+  if (unit === 'day') { r.setHours(0, 0, 0, 0); return r }
+  if (unit === 'week') {
+    r.setHours(0, 0, 0, 0)
+    r.setDate(r.getDate() - (r.getDay() === 0 ? 6 : r.getDay() - 1))
+    return r
+  }
+  return new Date(r.getFullYear(), r.getMonth(), 1)
+}
+
+const TIME_FILTERS: { value: TimePeriod; label: string }[] = [
+  { value: 'TODAY', label: 'Hoy' },
+  { value: 'WEEK',  label: 'Esta semana' },
+  { value: 'MONTH', label: 'Este mes' },
+  { value: 'ALL',   label: 'Todo' },
+]
+
 export const CostsPage = () => {
   const { costs, deleteCost } = useCosts()
   const { orders }            = useOrders()
   const [showModal,  setShowModal]  = useState(false)
-  const [filterCat,  setFilterCat]  = useState<CostCategory | 'ALL'>('ALL')
+  const [filterCat,   setFilterCat]   = useState<CostCategory | 'ALL'>('ALL')
+  const [timePeriod,  setTimePeriod]  = useState<TimePeriod>('ALL')
 
   const handleExportCosts  = () => exportCostsCSV(costs, 'costos_operativos')
   const handleExportReport = () => exportFullReportCSV(orders, costs, 'reporte_lavanderia')
@@ -41,9 +62,17 @@ export const CostsPage = () => {
     return acc
   }, {} as Record<CostCategory, number>)
 
-  const filtered = filterCat === 'ALL'
-    ? costs
-    : costs.filter(c => c.category === filterCat)
+  const filtered = useMemo(() => {
+    const now = new Date()
+    let list = [...costs]
+    if (timePeriod === 'TODAY') list = list.filter(c => new Date(c.date) >= startOf('day', now))
+    if (timePeriod === 'WEEK')  list = list.filter(c => new Date(c.date) >= startOf('week', now))
+    if (timePeriod === 'MONTH') list = list.filter(c => new Date(c.date) >= startOf('month', now))
+    if (filterCat !== 'ALL')   list = list.filter(c => c.category === filterCat)
+    return list
+  }, [costs, filterCat, timePeriod])
+
+  const periodTotal = filtered.reduce((acc, c) => acc + c.amount, 0)
 
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -64,6 +93,10 @@ export const CostsPage = () => {
           <h1 className="text-2xl font-bold text-white">Costos operativos</h1>
           <p className="text-slate-500 text-sm">
             Total registrado: <span className="text-white font-semibold">${total.toLocaleString()}</span>
+            {timePeriod !== 'ALL' && (
+              <> · <span className="text-indigo-400 font-semibold">${periodTotal.toLocaleString()}</span>
+              <span className="text-slate-600"> ({TIME_FILTERS.find(f => f.value === timePeriod)?.label})</span></>
+            )}
           </p>
         </div>
         <motion.button
@@ -120,6 +153,23 @@ export const CostsPage = () => {
           }
         </div>
       )}
+
+      {/* Filtro de tiempo */}
+      <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1 w-fit">
+        {TIME_FILTERS.map(f => (
+          <button
+            key={f.value}
+            onClick={() => setTimePeriod(f.value)}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              timePeriod === f.value
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
 
       {/* Filtro activo badge */}
       {filterCat !== 'ALL' && (

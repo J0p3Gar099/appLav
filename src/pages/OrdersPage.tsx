@@ -26,6 +26,7 @@ import { Toast } from '@/components/ui/Toast'
 import { exportOrdersCSV } from '@/utils/export.utils'
 import { notifyReadyOrder, notifyPendingReminder } from '@/utils/notify.utils'
 import { getUrgency } from '@/hooks/useUrgency'
+import { useStatusHistory } from '@/context/StatusHistoryContext'
 import type { Order, OrderStatus } from '@/models/order.model'
 
 // ── Constantes ────────────────────────────────────────────────
@@ -91,6 +92,7 @@ export const OrdersPage = () => {
   const { customers }  = useCustomers()
   const { user }         = useAuth()
   const { isAdmin }      = usePermissions()
+  const { addEntry }     = useStatusHistory()
 
   // ── Atajo de teclado: P → pedido, C → cliente ─────────────
   useEffect(() => {
@@ -134,7 +136,7 @@ export const OrdersPage = () => {
 
   // ── Filtros combinados ────────────────────────────────────
   const canModify = (order: Order) =>
-    order.status !== 'ENTREGADO' && (isAdmin || order.createdBy === user?.id)
+    order.status !== 'ENTREGADO'  // todos pueden editar; el historial registra quién
 
   let filtered = orders
     .filter(o => filterStatus === 'ALL' || o.status === filterStatus)
@@ -159,7 +161,26 @@ export const OrdersPage = () => {
   // ── Cambio de estado con notificación ────────────────────
   const handleStatusChange = (order: Order, status: OrderStatus) => {
     if (order.status === 'ENTREGADO') return
-    updateOrder({ ...order, status })
+    // ── Validar: no se puede marcar como ENTREGADO si no está pagado ──
+    if (status === 'ENTREGADO' && !order.isPaid) {
+      setToast(prev => ({
+        message: `⚠️ No se puede entregar el pedido de ${order.customerName} sin haber recibido el pago`,
+        type: 'error',
+        key: (prev?.key ?? 0) + 1,
+      }))
+      return
+    }
+    const success = updateOrder({ ...order, status })
+    if (!success) return
+    // ── Registrar en historial de estados ──
+    addEntry({
+      orderId: order.id,
+      customerName: order.customerName,
+      fromStatus: order.status,
+      toStatus: status,
+      changedBy: user?.id ?? '',
+      changedByName: user?.displayName ?? '',
+    })
     if (status === 'LISTO') {
       setToast(prev => ({
         message: `✅ Pedido de ${order.customerName} está listo para recoger`,
@@ -350,15 +371,22 @@ export const OrdersPage = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                      {isAdmin && (
-                        <div className="text-right">
-                          <p className="text-white font-semibold">${order.price}</p>
-                          {order.orderCost && <p className="text-xs text-slate-500">Costo: ${order.orderCost}</p>}
-                          <p className={`text-xs ${order.isPaid ? 'text-emerald-400' : 'text-amber-400'}`}>
-                            {order.isPaid ? '✓ Pagado' : '⏳ Pendiente'}
+                      <div className="text-right">
+                        {isAdmin && (
+                          <>
+                            <p className="text-white font-semibold">${order.price}</p>
+                            {order.orderCost && <p className="text-xs text-slate-500">Costo: ${order.orderCost}</p>}
+                          </>
+                        )}
+                        <p className={`text-xs ${order.isPaid ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          {order.isPaid ? '✓ Pagado' : '⏳ Pendiente'}
+                        </p>
+                        {order.isPaid && order.paidByName && (
+                          <p className="text-xs text-slate-600" title={order.paidAt ? new Date(order.paidAt).toLocaleString('es-MX') : ''}>
+                            por {order.paidByName}
                           </p>
-                        </div>
-                      )}
+                        )}
+                      </div>
                       {canModify(order) ? (
                         <select value={order.status}
                           onChange={e => handleStatusChange(order, e.target.value as OrderStatus)}
@@ -376,6 +404,12 @@ export const OrdersPage = () => {
                           onClick={() => setPrintOrder(order)}
                           className="p-1.5 rounded-lg text-slate-500 hover:text-amber-400 hover:bg-slate-800 transition-colors"
                           title="Imprimir etiqueta">🏷️</motion.button>
+                        {isAdmin && (
+                          <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                            onClick={() => navigate(`/orders/${order.id}/history`)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-purple-400 hover:bg-slate-800 transition-colors"
+                            title="Historial de estados">📋</motion.button>
+                        )}
                         {canModify(order) && (
                           <>
                             <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}

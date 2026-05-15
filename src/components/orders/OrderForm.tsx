@@ -4,6 +4,7 @@ import { useOrders } from '@/context/OrderContext'
 import { useCustomers } from '@/context/CustomerContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useAuth } from '@/context/AuthContext'
+import { useStatusHistory } from '@/context/StatusHistoryContext'
 import type { Order, ServiceType, PaymentMethod, DeliveryType } from '@/models/order.model'
 
 interface Props { order?: Order; onClose: () => void }
@@ -19,6 +20,7 @@ export const OrderForm = ({ order, onClose }: Props) => {
   const { customers }             = useCustomers()
   const { isAdmin }               = usePermissions()
   const { user }                  = useAuth()
+  const { addEntry }              = useStatusHistory()
   const isEditing = !!order
   const isLocked  = order?.status === 'ENTREGADO'
 
@@ -67,8 +69,21 @@ export const OrderForm = ({ order, onClose }: Props) => {
       promisedDate:  promisedDate || undefined,
     }
 
-    if (isEditing && order) updateOrder({ ...order, ...data })
-    else addOrder(data)
+    if (isEditing && order) {
+      updateOrder({ ...order, ...data })
+    } else {
+      addOrder(data)
+      // Registrar estado inicial en historial
+      const customerName = customers.find(c => c.id === data.customerId)?.name ?? data.customerId
+      addEntry({
+        orderId: '__pending__', // el ID real lo asigna addOrder con crypto.randomUUID
+        customerName,
+        fromStatus: null,
+        toStatus: data.status ?? 'CREADO',
+        changedBy: user?.id ?? '',
+        changedByName: user?.displayName ?? '',
+      })
+    }
     onClose()
   }
 

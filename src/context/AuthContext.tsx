@@ -4,6 +4,7 @@ import {
 } from 'react'
 import { authService } from '@/services/auth.service'
 import { useUsers } from '@/context/UserContext'
+import { useAttendance } from '@/context/AttendanceContext'
 import type { LoginCredentials, User } from '@/models/user.model'
 
 interface AuthState {
@@ -63,33 +64,37 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // ── 1. Hooks primero, en orden ────────────────────────────
   const [state, dispatch] = useReducer(authReducer, initialState)
-  const { findByCredentials } = useUsers()   // ← aquí, después del useReducer
+  const { findByCredentials } = useUsers()
+  const { recordLogin, recordLogout } = useAttendance()
 
-  // ── 2. Efectos ────────────────────────────────────────────
   useEffect(() => {
     dispatch({ type: 'AUTH_INIT_START' })
     const stored = authService.getStoredSession()
     dispatch({ type: 'AUTH_INIT_DONE', payload: stored })
   }, [])
 
-  // ── 3. Callbacks ──────────────────────────────────────────
   const login = useCallback(async (credentials: LoginCredentials) => {
-  dispatch({ type: 'LOGIN_START' })
-  const result = await authService.login(credentials, findByCredentials)
-  if (!result.success) {
-    dispatch({ type: 'LOGIN_FAILURE', payload: (result as { success: false; error: string }).error })
-    return
-  }
-  authService.persistSession(result.data.user, result.data.token)
-  dispatch({ type: 'LOGIN_SUCCESS', payload: result.data })
-}, [findByCredentials])
+    dispatch({ type: 'LOGIN_START' })
+    const result = await authService.login(credentials, findByCredentials)
+    if (!result.success) {
+      dispatch({ type: 'LOGIN_FAILURE', payload: (result as { success: false; error: string }).error })
+      return
+    }
+    authService.persistSession(result.data.user, result.data.token)
+    dispatch({ type: 'LOGIN_SUCCESS', payload: result.data })
+    recordLogin({
+      id: result.data.user.id,
+      displayName: result.data.user.displayName,
+      role: result.data.user.role,
+    })
+  }, [findByCredentials, recordLogin])
 
   const logout = useCallback(async () => {
+    if (state.user) recordLogout(state.user.id)
     await authService.logout()
     dispatch({ type: 'LOGOUT' })
-  }, [])
+  }, [state.user, recordLogout])
 
   const clearError = useCallback(() => {
     dispatch({ type: 'CLEAR_ERROR' })

@@ -113,9 +113,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       // Pedidos ENTREGADOS son completamente inmutables
       const existing = state.orders.find(o => o.id === order.id)
       if (existing?.status === 'ENTREGADO') return false
-      // Admin puede editar todo; user solo sus propios pedidos
-      const canEdit = user.role === 'admin' || order.createdBy === user.id
-      if (!canEdit) return false
+      // Cualquier usuario autenticado puede editar pedidos (no ENTREGADOS)
+      // El historial de cambios registra quién hizo qué
 
       // [NOTIFICACIONES] Registrar cuándo pasó a LISTO por primera vez
       const readyAt =
@@ -123,7 +122,21 @@ export function OrderProvider({ children }: { children: ReactNode }) {
           ? new Date().toISOString()
           : order.readyAt
 
-      dispatch({ type: 'UPDATE', payload: { ...order, readyAt } })
+      // Registrar quién marcó como pagado y cuándo
+      const paidBy =
+        order.isPaid && !existing?.isPaid
+          ? user.id
+          : order.isPaid ? order.paidBy : undefined
+      const paidByName =
+        order.isPaid && !existing?.isPaid
+          ? user.displayName
+          : order.isPaid ? order.paidByName : undefined
+      const paidAt =
+        order.isPaid && !existing?.isPaid
+          ? new Date().toISOString()
+          : order.isPaid ? order.paidAt : undefined
+
+      dispatch({ type: 'UPDATE', payload: { ...order, readyAt, paidBy, paidByName, paidAt } })
       return true
     },
     [user, state.orders]

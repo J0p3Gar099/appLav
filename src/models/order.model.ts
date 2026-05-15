@@ -23,4 +23,7 @@ export interface Order {
   readyAt?: string        // ISO date string — cuándo pasó a estado LISTO (para recordatorios)
   createdBy: string
   createdAt: string
+  paidBy?: string      // userId de quien marcó como pagado
+  paidByName?: string  // nombre para mostrar
+  paidAt?: string      // ISO — cuándo se marcó como pagado
 }
